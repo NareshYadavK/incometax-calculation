@@ -1,0 +1,5 @@
+{
+  "name": "Advanced Income Tax Calculator",
+  "description": "A comprehensive income tax calculator supporting multiple regimes, extensive deductions (80C, 80D, etc.), and AI-powered tax planning optimization.",
+  "requestFramePermissions": []
+}
