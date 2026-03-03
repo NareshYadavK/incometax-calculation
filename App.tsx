@@ -37,6 +37,10 @@ const App: React.FC = () => {
     homeLoanInterest: 0,
     rentPaid: 360000,
     metroCity: true,
+    interest234A: 0,
+    interest234B: 0,
+    interest234C: 0,
+    fees234F: 0,
   });
 
   const [aiAdvice, setAiAdvice] = useState<string>("");
@@ -182,6 +186,14 @@ const App: React.FC = () => {
                     <label htmlFor="metro" className="text-sm font-medium text-slate-700">Metro City (50% HRA limit)</label>
                   </div>
                 </div>
+
+                <h3 className="text-lg font-semibold mt-10 mb-6 border-b pb-2">Interests & Fees (u/s 234)</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
+                  <InputField label="Interest u/s 234A" value={deductions.interest234A} onChange={(v) => handleUpdateDeduction('interest234A', v)} />
+                  <InputField label="Interest u/s 234B" value={deductions.interest234B} onChange={(v) => handleUpdateDeduction('interest234B', v)} />
+                  <InputField label="Interest u/s 234C" value={deductions.interest234C} onChange={(v) => handleUpdateDeduction('interest234C', v)} />
+                  <InputField label="Late Filing Fee u/s 234F" value={deductions.fees234F} onChange={(v) => handleUpdateDeduction('fees234F', v)} />
+                </div>
               </section>
             )}
 
@@ -243,6 +255,14 @@ const App: React.FC = () => {
                         <span>Total Tax</span>
                         <span>₹{results.oldRegime.totalTax.toLocaleString('en-IN')}</span>
                       </div>
+                      {(results.oldRegime.interest234A + results.oldRegime.interest234B + results.oldRegime.interest234C + results.oldRegime.fees234F) > 0 && (
+                        <div className="mt-2 pt-2 border-t border-dashed border-slate-200 text-xs text-slate-500 space-y-1">
+                          <div className="flex justify-between">
+                            <span>Incl. Interests & Fees:</span>
+                            <span>₹{(results.oldRegime.interest234A + results.oldRegime.interest234B + results.oldRegime.interest234C + results.oldRegime.fees234F).toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -261,6 +281,14 @@ const App: React.FC = () => {
                         <span>Total Tax</span>
                         <span>₹{results.newRegime.totalTax.toLocaleString('en-IN')}</span>
                       </div>
+                      {(results.newRegime.interest234A + results.newRegime.interest234B + results.newRegime.interest234C + results.newRegime.fees234F) > 0 && (
+                        <div className="mt-2 pt-2 border-t border-dashed border-blue-200 text-xs text-blue-400 space-y-1">
+                          <div className="flex justify-between">
+                            <span>Incl. Interests & Fees:</span>
+                            <span>₹{(results.newRegime.interest234A + results.newRegime.interest234B + results.newRegime.interest234C + results.newRegime.fees234F).toLocaleString('en-IN')}</span>
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>
