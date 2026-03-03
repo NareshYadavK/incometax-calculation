@@ -31,6 +31,39 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
   );
   const actualHraExemption = Math.max(0, hraExemption);
 
+  const calculateInterestsAndFees = (taxableIncome: number, taxBeforeCess: number, cess: number) => {
+    const assessedTax = taxBeforeCess + cess;
+    const netTaxPayable = Math.max(0, assessedTax - deductions.tdsPaid);
+    
+    // 234F: Late Filing Fee
+    let fees234F = 0;
+    if (deductions.isLateFiling) {
+      fees234F = taxableIncome <= 500000 ? 1000 : 5000;
+    }
+
+    // 234A: Interest for delay in filing (1% per month)
+    const interest234A = deductions.isLateFiling 
+      ? Math.max(0, Math.floor((netTaxPayable - deductions.advanceTaxPaid) * 0.01 * deductions.delayMonths))
+      : 0;
+
+    // 234B: Interest for default in advance tax (1% per month)
+    // Applies if advance tax paid is less than 90% of assessed tax
+    let interest234B = 0;
+    if (deductions.advanceTaxPaid < 0.9 * netTaxPayable) {
+      const shortfall = netTaxPayable - deductions.advanceTaxPaid;
+      // Assuming 4 months default (April to July) for simple calculation
+      interest234B = Math.max(0, Math.floor(shortfall * 0.01 * 4));
+    }
+
+    // 234C: Interest for deferment of advance tax
+    // Very complex to auto-calculate without installments, setting a nominal 0.5% of net tax if shortfall exists
+    const interest234C = deductions.advanceTaxPaid < netTaxPayable 
+      ? Math.max(0, Math.floor((netTaxPayable - deductions.advanceTaxPaid) * 0.005))
+      : 0;
+
+    return { interest234A, interest234B, interest234C, fees234F };
+  };
+
   // --- OLD REGIME ---
   const oldExemptions = actualHraExemption + income.professionalTax + income.lta + TAX_CONSTANTS.OLD_REGIME_STANDARD_DEDUCTION;
   const total80CDeduction = Math.min(deductions.section80C, TAX_CONSTANTS.SECTION_80C_LIMIT);
@@ -44,7 +77,8 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
   if (oldTaxableIncome <= TAX_CONSTANTS.OLD_REGIME_REBATE_LIMIT) oldTax = 0;
   
   const oldCess = oldTax * TAX_CONSTANTS.CESS_RATE;
-  const oldTotalTax = oldTax + oldCess + deductions.interest234A + deductions.interest234B + deductions.interest234C + deductions.fees234F;
+  const oldInterests = calculateInterestsAndFees(oldTaxableIncome, oldTax, oldCess);
+  const oldTotalTax = oldTax + oldCess + oldInterests.interest234A + oldInterests.interest234B + oldInterests.interest234C + oldInterests.fees234F;
   
   const oldResult: TaxRegimeResults = {
     grossTotalIncome,
@@ -53,10 +87,11 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
     taxableIncome: oldTaxableIncome,
     taxBeforeCess: oldTax,
     cess: oldCess,
-    interest234A: deductions.interest234A,
-    interest234B: deductions.interest234B,
-    interest234C: deductions.interest234C,
-    fees234F: deductions.fees234F,
+    interest234A: oldInterests.interest234A,
+    interest234B: oldInterests.interest234B,
+    interest234C: oldInterests.interest234C,
+    fees234F: oldInterests.fees234F,
+    tdsPaid: deductions.tdsPaid,
     totalTax: oldTotalTax,
     effectiveRate: grossTotalIncome > 0 ? oldTotalTax / grossTotalIncome : 0
   };
@@ -71,7 +106,8 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
   if (newTaxableIncome <= TAX_CONSTANTS.NEW_REGIME_REBATE_LIMIT) newTax = 0;
   
   const newCess = newTax * TAX_CONSTANTS.CESS_RATE;
-  const newTotalTax = newTax + newCess + deductions.interest234A + deductions.interest234B + deductions.interest234C + deductions.fees234F;
+  const newInterests = calculateInterestsAndFees(newTaxableIncome, newTax, newCess);
+  const newTotalTax = newTax + newCess + newInterests.interest234A + newInterests.interest234B + newInterests.interest234C + newInterests.fees234F;
 
   const newResult: TaxRegimeResults = {
     grossTotalIncome,
@@ -80,10 +116,11 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
     taxableIncome: newTaxableIncome,
     taxBeforeCess: newTax,
     cess: newCess,
-    interest234A: deductions.interest234A,
-    interest234B: deductions.interest234B,
-    interest234C: deductions.interest234C,
-    fees234F: deductions.fees234F,
+    interest234A: newInterests.interest234A,
+    interest234B: newInterests.interest234B,
+    interest234C: newInterests.interest234C,
+    fees234F: newInterests.fees234F,
+    tdsPaid: deductions.tdsPaid,
     totalTax: newTotalTax,
     effectiveRate: grossTotalIncome > 0 ? newTotalTax / grossTotalIncome : 0
   };
