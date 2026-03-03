@@ -29,6 +29,10 @@ export interface DeductionData {
   interest234B: number;
   interest234C: number;
   fees234F: number;
+  tdsPaid: number;
+  advanceTaxPaid: number;
+  isLateFiling: boolean;
+  delayMonths: number;
 }
 
 export interface TaxRegimeResults {
@@ -42,6 +46,7 @@ export interface TaxRegimeResults {
   interest234B: number;
   interest234C: number;
   fees234F: number;
+  tdsPaid: number;
   totalTax: number;
   effectiveRate: number;
 }
