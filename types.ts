@@ -25,6 +25,10 @@ export interface DeductionData {
   homeLoanInterest: number;
   rentPaid: number;
   metroCity: boolean;
+  interest234A: number;
+  interest234B: number;
+  interest234C: number;
+  fees234F: number;
 }
 
 export interface TaxRegimeResults {
@@ -34,6 +38,10 @@ export interface TaxRegimeResults {
   taxableIncome: number;
   taxBeforeCess: number;
   cess: number;
+  interest234A: number;
+  interest234B: number;
+  interest234C: number;
+  fees234F: number;
   totalTax: number;
   effectiveRate: number;
 }
