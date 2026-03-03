@@ -41,6 +41,10 @@ const App: React.FC = () => {
     interest234B: 0,
     interest234C: 0,
     fees234F: 0,
+    tdsPaid: 0,
+    advanceTaxPaid: 0,
+    isLateFiling: false,
+    delayMonths: 0,
   });
 
   const [aiAdvice, setAiAdvice] = useState<string>("");
@@ -187,12 +191,25 @@ const App: React.FC = () => {
                   </div>
                 </div>
 
-                <h3 className="text-lg font-semibold mt-10 mb-6 border-b pb-2">Interests & Fees (u/s 234)</h3>
+                <h3 className="text-lg font-semibold mt-10 mb-6 border-b pb-2">Tax Compliance & Payments</h3>
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-x-8">
-                  <InputField label="Interest u/s 234A" value={deductions.interest234A} onChange={(v) => handleUpdateDeduction('interest234A', v)} />
-                  <InputField label="Interest u/s 234B" value={deductions.interest234B} onChange={(v) => handleUpdateDeduction('interest234B', v)} />
-                  <InputField label="Interest u/s 234C" value={deductions.interest234C} onChange={(v) => handleUpdateDeduction('interest234C', v)} />
-                  <InputField label="Late Filing Fee u/s 234F" value={deductions.fees234F} onChange={(v) => handleUpdateDeduction('fees234F', v)} />
+                  <InputField label="TDS Already Deducted" value={deductions.tdsPaid} onChange={(v) => handleUpdateDeduction('tdsPaid', v)} />
+                  <InputField label="Advance Tax Paid" value={deductions.advanceTaxPaid} onChange={(v) => handleUpdateDeduction('advanceTaxPaid', v)} />
+                  
+                  <div className="flex items-center gap-2 pt-8">
+                    <input 
+                      type="checkbox" 
+                      id="lateFiling"
+                      checked={deductions.isLateFiling} 
+                      onChange={(e) => handleUpdateDeduction('isLateFiling', e.target.checked)}
+                      className="w-4 h-4 text-blue-600 rounded border-slate-300"
+                    />
+                    <label htmlFor="lateFiling" className="text-sm font-medium text-slate-700">Late Filing (u/s 234F)</label>
+                  </div>
+
+                  {deductions.isLateFiling && (
+                    <InputField label="Months of Delay (u/s 234A)" value={deductions.delayMonths} onChange={(v) => handleUpdateDeduction('delayMonths', v)} />
+                  )}
                 </div>
               </section>
             )}
@@ -255,14 +272,22 @@ const App: React.FC = () => {
                         <span>Total Tax</span>
                         <span>₹{results.oldRegime.totalTax.toLocaleString('en-IN')}</span>
                       </div>
-                      {(results.oldRegime.interest234A + results.oldRegime.interest234B + results.oldRegime.interest234C + results.oldRegime.fees234F) > 0 && (
-                        <div className="mt-2 pt-2 border-t border-dashed border-slate-200 text-xs text-slate-500 space-y-1">
-                          <div className="flex justify-between">
-                            <span>Incl. Interests & Fees:</span>
-                            <span>₹{(results.oldRegime.interest234A + results.oldRegime.interest234B + results.oldRegime.interest234C + results.oldRegime.fees234F).toLocaleString('en-IN')}</span>
-                          </div>
+                      <div className="mt-2 pt-2 border-t border-dashed border-slate-200 text-xs text-slate-500 space-y-1">
+                        <div className="flex justify-between">
+                          <span>TDS Deducted:</span>
+                          <span className="text-green-600">-₹{results.oldRegime.tdsPaid.toLocaleString('en-IN')}</span>
                         </div>
-                      )}
+                        {(results.oldRegime.interest234A + results.oldRegime.interest234B + results.oldRegime.interest234C + results.oldRegime.fees234F) > 0 && (
+                          <div className="flex justify-between font-medium text-red-500">
+                            <span>Interests & Fees (Auto):</span>
+                            <span>+₹{(results.oldRegime.interest234A + results.oldRegime.interest234B + results.oldRegime.interest234C + results.oldRegime.fees234F).toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-bold text-slate-900 pt-1">
+                          <span>Net Payable:</span>
+                          <span>₹{Math.max(0, results.oldRegime.totalTax - results.oldRegime.tdsPaid).toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
 
@@ -281,14 +306,22 @@ const App: React.FC = () => {
                         <span>Total Tax</span>
                         <span>₹{results.newRegime.totalTax.toLocaleString('en-IN')}</span>
                       </div>
-                      {(results.newRegime.interest234A + results.newRegime.interest234B + results.newRegime.interest234C + results.newRegime.fees234F) > 0 && (
-                        <div className="mt-2 pt-2 border-t border-dashed border-blue-200 text-xs text-blue-400 space-y-1">
-                          <div className="flex justify-between">
-                            <span>Incl. Interests & Fees:</span>
-                            <span>₹{(results.newRegime.interest234A + results.newRegime.interest234B + results.newRegime.interest234C + results.newRegime.fees234F).toLocaleString('en-IN')}</span>
-                          </div>
+                      <div className="mt-2 pt-2 border-t border-dashed border-blue-200 text-xs text-blue-400 space-y-1">
+                        <div className="flex justify-between">
+                          <span>TDS Deducted:</span>
+                          <span className="text-green-600">-₹{results.newRegime.tdsPaid.toLocaleString('en-IN')}</span>
                         </div>
-                      )}
+                        {(results.newRegime.interest234A + results.newRegime.interest234B + results.newRegime.interest234C + results.newRegime.fees234F) > 0 && (
+                          <div className="flex justify-between font-medium text-red-500">
+                            <span>Interests & Fees (Auto):</span>
+                            <span>+₹{(results.newRegime.interest234A + results.newRegime.interest234B + results.newRegime.interest234C + results.newRegime.fees234F).toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between font-bold text-blue-700 pt-1">
+                          <span>Net Payable:</span>
+                          <span>₹{Math.max(0, results.newRegime.totalTax - results.newRegime.tdsPaid).toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 </div>
