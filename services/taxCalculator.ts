@@ -44,6 +44,7 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
   if (oldTaxableIncome <= TAX_CONSTANTS.OLD_REGIME_REBATE_LIMIT) oldTax = 0;
   
   const oldCess = oldTax * TAX_CONSTANTS.CESS_RATE;
+  const oldTotalTax = oldTax + oldCess + deductions.interest234A + deductions.interest234B + deductions.interest234C + deductions.fees234F;
   
   const oldResult: TaxRegimeResults = {
     grossTotalIncome,
@@ -52,8 +53,12 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
     taxableIncome: oldTaxableIncome,
     taxBeforeCess: oldTax,
     cess: oldCess,
-    totalTax: oldTax + oldCess,
-    effectiveRate: grossTotalIncome > 0 ? (oldTax + oldCess) / grossTotalIncome : 0
+    interest234A: deductions.interest234A,
+    interest234B: deductions.interest234B,
+    interest234C: deductions.interest234C,
+    fees234F: deductions.fees234F,
+    totalTax: oldTotalTax,
+    effectiveRate: grossTotalIncome > 0 ? oldTotalTax / grossTotalIncome : 0
   };
 
   // --- NEW REGIME (FY 2025-26 Changes) ---
@@ -66,6 +71,7 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
   if (newTaxableIncome <= TAX_CONSTANTS.NEW_REGIME_REBATE_LIMIT) newTax = 0;
   
   const newCess = newTax * TAX_CONSTANTS.CESS_RATE;
+  const newTotalTax = newTax + newCess + deductions.interest234A + deductions.interest234B + deductions.interest234C + deductions.fees234F;
 
   const newResult: TaxRegimeResults = {
     grossTotalIncome,
@@ -74,8 +80,12 @@ export const calculateTaxes = (income: IncomeData, deductions: DeductionData): C
     taxableIncome: newTaxableIncome,
     taxBeforeCess: newTax,
     cess: newCess,
-    totalTax: newTax + newCess,
-    effectiveRate: grossTotalIncome > 0 ? (newTax + newCess) / grossTotalIncome : 0
+    interest234A: deductions.interest234A,
+    interest234B: deductions.interest234B,
+    interest234C: deductions.interest234C,
+    fees234F: deductions.fees234F,
+    totalTax: newTotalTax,
+    effectiveRate: grossTotalIncome > 0 ? newTotalTax / grossTotalIncome : 0
   };
 
   return {
